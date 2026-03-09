@@ -32,6 +32,22 @@ docs/
 - Stateless JWT bearer authentication
 - Fastify auth decorators for authentication and role checks
 
+## Backend module structure
+
+- `auth`: login, logout, current user lookup, and role-aware auth decorators
+- `work-orders`: list/detail domain reads plus start, pause, and complete actions
+- `dashboard`: supervisor summary and activity timeline reads
+- `activity`: audit logging service used by domain mutations
+
+## Data model summary
+
+- `User` stores technician and supervisor identities
+- `Asset` represents the physical equipment attached to work orders
+- `WorkflowTemplate` and `WorkflowTemplateStep` define repeatable procedures
+- `WorkOrder` and `WorkOrderStepExecution` track execution state per assigned job
+- `IncidentReport` and `Attachment` capture exceptions and supporting metadata
+- `ActivityLog` stores timeline events for supervisor visibility and later realtime fan-out
+
 ## Tradeoffs
 
 - Logout is currently stateless and handled client-side by dropping the token.

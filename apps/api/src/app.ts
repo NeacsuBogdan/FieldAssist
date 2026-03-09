@@ -12,21 +12,30 @@ import {
 
 import type { AppConfig } from "./config/env.js";
 import { loadConfig } from "./config/env.js";
-import {
-  ForbiddenError,
-  NotFoundError,
-  UnauthorizedError,
-} from "./lib/errors.js";
+import { AppError, ForbiddenError } from "./lib/errors.js";
 import { verifyPassword } from "./lib/password.js";
 import { createPrismaClient } from "./lib/prisma.js";
+import { createActivityLogService } from "./modules/activity/activity.service.js";
 import { createAuthRepository } from "./modules/auth/auth.repository.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import { createAuthService } from "./modules/auth/auth.service.js";
 import type { AuthService } from "./modules/auth/auth.types.js";
+import dashboardRoutes from "./modules/dashboard/dashboard.routes.js";
+import {
+  createDashboardService,
+  type DashboardService,
+} from "./modules/dashboard/dashboard.service.js";
 import healthRoutes from "./modules/health/health.routes.js";
+import workOrderRoutes from "./modules/work-orders/work-order.routes.js";
+import {
+  createWorkOrderService,
+  type WorkOrderService,
+} from "./modules/work-orders/work-order.service.js";
 
 export type AppServices = {
   auth: AuthService;
+  dashboard: DashboardService;
+  workOrders: WorkOrderService;
 };
 
 type BuildAppOptions = {
@@ -80,6 +89,7 @@ export const buildApp = async (options: BuildAppOptions = {}) => {
     secret: config.JWT_SECRET,
   });
 
+  const activityLogService = createActivityLogService(prisma);
   const authService =
     options.services?.auth ??
     createAuthService({
@@ -87,11 +97,21 @@ export const buildApp = async (options: BuildAppOptions = {}) => {
       userRepository: createAuthRepository(prisma),
       verifyPassword,
     });
+  const workOrders =
+    options.services?.workOrders ??
+    createWorkOrderService({
+      activityLogService,
+      prisma,
+    });
+  const dashboard =
+    options.services?.dashboard ?? createDashboardService(prisma);
 
   app.decorate("config", config);
   app.decorate("prisma", prisma);
   app.decorate("services", {
     auth: authService,
+    dashboard,
+    workOrders,
   });
   app.decorateRequest("authContext", null);
   app.decorate("authenticate", async (request) => {
@@ -135,16 +155,7 @@ export const buildApp = async (options: BuildAppOptions = {}) => {
       });
     }
 
-    if (error instanceof UnauthorizedError) {
-      return reply.status(error.statusCode).send({
-        error: {
-          code: error.code,
-          message: error.message,
-        },
-      });
-    }
-
-    if (error instanceof ForbiddenError || error instanceof NotFoundError) {
+    if (error instanceof AppError) {
       return reply.status(error.statusCode).send({
         error: {
           code: error.code,
@@ -187,6 +198,12 @@ export const buildApp = async (options: BuildAppOptions = {}) => {
   });
   await app.register(authRoutes, {
     prefix: "/api/v1/auth",
+  });
+  await app.register(workOrderRoutes, {
+    prefix: "/api/v1/work-orders",
+  });
+  await app.register(dashboardRoutes, {
+    prefix: "/api/v1/dashboard",
   });
 
   return app;

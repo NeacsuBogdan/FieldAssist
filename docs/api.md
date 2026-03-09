@@ -11,6 +11,19 @@
 - `POST /api/v1/auth/logout`
 - `GET /api/v1/auth/me`
 
+## Work order routes
+
+- `GET /api/v1/work-orders`
+- `GET /api/v1/work-orders/:id`
+- `POST /api/v1/work-orders/:id/start`
+- `POST /api/v1/work-orders/:id/pause`
+- `POST /api/v1/work-orders/:id/complete`
+
+## Dashboard routes
+
+- `GET /api/v1/dashboard/summary`
+- `GET /api/v1/dashboard/activity`
+
 ## Health route
 
 - `GET /api/v1/health`
@@ -63,6 +76,20 @@ Error responses currently use:
       "fullName": "Mara Ionescu",
       "role": "TECHNICIAN"
     }
+  }
+}
+```
+
+## Example dashboard summary response
+
+```json
+{
+  "data": {
+    "activeWorkOrders": 1,
+    "assignedWorkOrders": 1,
+    "blockedWorkOrders": 0,
+    "openIncidents": 1,
+    "techniciansActive": 1
   }
 }
 ```

@@ -1,4 +1,5 @@
 type AppErrorCode =
+  | "CONFLICT"
   | "FORBIDDEN"
   | "INTERNAL_SERVER_ERROR"
   | "NOT_FOUND"
@@ -27,6 +28,14 @@ export class ForbiddenError extends AppError {
     message = "You do not have permission to access this resource.",
   ) {
     super("FORBIDDEN", message, 403);
+  }
+}
+
+export class ConflictError extends AppError {
+  public constructor(
+    message = "The requested action conflicts with the current resource state.",
+  ) {
+    super("CONFLICT", message, 409);
   }
 }
 

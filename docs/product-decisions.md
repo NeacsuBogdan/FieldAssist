@@ -15,6 +15,8 @@ The first backend milestone focuses on authentication and secure access control 
 
 Even at the backend layer, the product is being shaped around fast state changes, simple response payloads, and role-scoped workflows so the eventual frontend can keep screens readable and actions obvious.
 
+The seeded data deliberately includes a partially completed job, a newly assigned job, and an open incident so the MVP can demonstrate technician and supervisor perspectives without extra setup.
+
 ## Intentionally deferred
 
 - Public registration

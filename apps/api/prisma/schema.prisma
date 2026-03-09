@@ -12,12 +12,171 @@ enum UserRole {
   SUPERVISOR
 }
 
+enum WorkOrderPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum WorkOrderStatus {
+  ASSIGNED
+  IN_PROGRESS
+  PAUSED
+  BLOCKED
+  COMPLETED
+}
+
+enum StepStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IncidentStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+}
+
 model User {
+  id                String           @id @default(cuid())
+  email             String           @unique
+  passwordHash      String
+  fullName          String
+  role              UserRole
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  assignedWorkOrders WorkOrder[]     @relation("AssignedWorkOrders")
+  reportedIncidents IncidentReport[] @relation("ReportedIncidents")
+  uploadedAttachments Attachment[]
+  activityLogs      ActivityLog[]
+}
+
+model Asset {
+  id           String      @id @default(cuid())
+  name         String
+  serialNumber String      @unique
+  model        String
+  location     String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  workOrders   WorkOrder[]
+}
+
+model WorkflowTemplate {
+  id          String                 @id @default(cuid())
+  name        String
+  description String
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+  steps       WorkflowTemplateStep[]
+  workOrders  WorkOrder[]
+}
+
+model WorkflowTemplateStep {
+  id              String                   @id @default(cuid())
+  templateId      String
+  order           Int
+  title           String
+  instruction     String
+  expectedOutcome String?
+  voiceLabel      String?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  template        WorkflowTemplate         @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  executions      WorkOrderStepExecution[]
+
+  @@unique([templateId, order])
+}
+
+model WorkOrder {
+  id               String                   @id @default(cuid())
+  code             String                   @unique
+  title            String
+  description      String
+  priority         WorkOrderPriority
+  status           WorkOrderStatus
+  assignedToUserId String
+  assetId          String
+  templateId       String
+  dueAt            DateTime?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+  assignedTo       User                     @relation("AssignedWorkOrders", fields: [assignedToUserId], references: [id], onDelete: Restrict)
+  asset            Asset                    @relation(fields: [assetId], references: [id], onDelete: Restrict)
+  template         WorkflowTemplate         @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  stepExecutions   WorkOrderStepExecution[]
+  incidents        IncidentReport[]
+  attachments      Attachment[]
+}
+
+model WorkOrderStepExecution {
+  id             String               @id @default(cuid())
+  workOrderId    String
+  templateStepId String
+  status         StepStatus
+  notes          String?
+  completedAt    DateTime?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  workOrder      WorkOrder            @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  templateStep   WorkflowTemplateStep @relation(fields: [templateStepId], references: [id], onDelete: Restrict)
+  incidents      IncidentReport[]
+
+  @@unique([workOrderId, templateStepId])
+}
+
+model IncidentReport {
+  id              String            @id @default(cuid())
+  workOrderId     String
+  stepExecutionId String?
+  reporterId      String
+  severity        IncidentSeverity
+  category        String
+  summary         String
+  details         String
+  status          IncidentStatus
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  workOrder       WorkOrder         @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  stepExecution   WorkOrderStepExecution? @relation(fields: [stepExecutionId], references: [id], onDelete: SetNull)
+  reporter        User              @relation("ReportedIncidents", fields: [reporterId], references: [id], onDelete: Restrict)
+  attachments     Attachment[]
+}
+
+model Attachment {
+  id               String         @id @default(cuid())
+  incidentReportId String?
+  workOrderId      String?
+  originalFileName String
+  mimeType         String
+  sizeBytes        Int
+  storageKey       String
+  uploadedByUserId String
+  createdAt        DateTime       @default(now())
+  incidentReport   IncidentReport? @relation(fields: [incidentReportId], references: [id], onDelete: SetNull)
+  workOrder        WorkOrder?     @relation(fields: [workOrderId], references: [id], onDelete: SetNull)
+  uploadedByUser   User           @relation(fields: [uploadedByUserId], references: [id], onDelete: Restrict)
+}
+
+model ActivityLog {
   id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  fullName     String
-  role         UserRole
+  actorUserId  String?
+  entityType   String
+  entityId     String
+  action       String
+  metadataJson Json?
   createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  actorUser    User?    @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
 }

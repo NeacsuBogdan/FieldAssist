@@ -4,7 +4,7 @@
 
 - [x] Stage 0 - Repo audit and foundation
 - [x] Stage 1 - Database, API foundation, auth
-- [ ] Stage 2 - Core domain: assets, templates, work orders
+- [x] Stage 2 - Core domain: assets, templates, work orders
 - [ ] Stage 3 - Frontend foundation and auth flow
 - [ ] Stage 4 - Technician experience
 - [ ] Stage 5 - Incident reporting
@@ -37,3 +37,12 @@
 - Added JWT auth, role-aware request decorators, environment parsing, and centralized error handling.
 - Added auth route tests and verified the seeded login flow against the running app.
 - Verified `pnpm db:up`, `pnpm db:migrate`, `pnpm db:seed`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`.
+
+### Stage 2
+
+- Expanded the Prisma schema to include assets, workflow templates, template steps, work orders, step executions, incidents, attachments, and activity logs.
+- Added deterministic seed data with assigned work orders, step progress, an open incident, and timeline entries.
+- Implemented work order list/detail/start/pause/complete routes with service-layer business logic and audit logging.
+- Implemented supervisor dashboard summary and activity routes.
+- Added route tests for work order and dashboard behavior and verified seeded live data through API smoke checks.
+- Verified `pnpm db:migrate`, `pnpm db:seed`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`.
