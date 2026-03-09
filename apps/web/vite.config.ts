@@ -3,6 +3,17 @@ import { defineConfig } from "vitest/config";
 import { fileURLToPath, URL } from "node:url";
 
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          app: ["react", "react-dom", "react-router-dom"],
+          data: ["@tanstack/react-query", "zustand"],
+          realtime: ["socket.io-client"],
+        },
+      },
+    },
+  },
   plugins: [react()],
   resolve: {
     alias: {

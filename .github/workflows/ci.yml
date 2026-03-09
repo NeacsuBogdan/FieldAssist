@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: fieldassist
+          POSTGRES_PASSWORD: fieldassist
+          POSTGRES_USER: fieldassist
+        options: >-
+          --health-cmd "pg_isready -U fieldassist -d fieldassist"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          cache: pnpm
+          node-version: 22
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prepare environment files
+        run: |
+          cp apps/api/.env.example apps/api/.env
+          cp apps/web/.env.example apps/web/.env
+
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run database migrations
+        run: pnpm db:migrate
+
+      - name: Seed demo data
+        run: pnpm db:seed
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit and integration tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      - name: End-to-end smoke tests
+        run: pnpm test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: ignore
+          name: playwright-report
+          path: playwright-report
