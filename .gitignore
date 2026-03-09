@@ -5,6 +5,7 @@ coverage
 .turbo
 .vite
 .cache
+*.tsbuildinfo
 playwright-report
 test-results
 tmp
