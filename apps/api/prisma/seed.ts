@@ -1,18 +1,39 @@
 import "dotenv/config";
 
-import {
-  IncidentSeverity,
-  IncidentStatus,
-  PrismaClient,
-  StepStatus,
-  UserRole,
-  WorkOrderPriority,
-  WorkOrderStatus,
-} from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 import { hashPassword } from "../src/lib/password.js";
 
 const prisma = new PrismaClient();
+
+const userRole = {
+  SUPERVISOR: "SUPERVISOR",
+  TECHNICIAN: "TECHNICIAN",
+} as const;
+
+const workOrderPriority = {
+  HIGH: "HIGH",
+  MEDIUM: "MEDIUM",
+} as const;
+
+const workOrderStatus = {
+  ASSIGNED: "ASSIGNED",
+  IN_PROGRESS: "IN_PROGRESS",
+} as const;
+
+const stepStatus = {
+  COMPLETED: "COMPLETED",
+  IN_PROGRESS: "IN_PROGRESS",
+  PENDING: "PENDING",
+} as const;
+
+const incidentSeverity = {
+  MEDIUM: "MEDIUM",
+} as const;
+
+const incidentStatus = {
+  OPEN: "OPEN",
+} as const;
 
 const demoPassword = "FieldAssist123!";
 const createdAt = new Date("2026-03-09T07:00:00.000Z");
@@ -41,7 +62,7 @@ const seed = async (): Promise<void> => {
         fullName: "Mara Ionescu",
         id: "user-tech-demo",
         passwordHash,
-        role: UserRole.TECHNICIAN,
+        role: userRole.TECHNICIAN,
         updatedAt: createdAt,
       },
       {
@@ -50,7 +71,7 @@ const seed = async (): Promise<void> => {
         fullName: "Alex Stan",
         id: "user-supervisor-demo",
         passwordHash,
-        role: UserRole.SUPERVISOR,
+        role: userRole.SUPERVISOR,
         updatedAt: createdAt,
       },
     ],
@@ -194,9 +215,9 @@ const seed = async (): Promise<void> => {
           "Investigate increased vibration reported during the morning round.",
         dueAt: new Date("2026-03-09T15:00:00.000Z"),
         id: "work-order-pump-2403",
-        priority: WorkOrderPriority.HIGH,
+        priority: workOrderPriority.HIGH,
         startedAt,
-        status: WorkOrderStatus.IN_PROGRESS,
+        status: workOrderStatus.IN_PROGRESS,
         templateId: "template-pump-inspection",
         title: "Inspect feed pump vibration",
         updatedAt: incidentCreatedAt,
@@ -211,9 +232,9 @@ const seed = async (): Promise<void> => {
           "Recover intermittent comms loss on the packaging line sensor rack.",
         dueAt: new Date("2026-03-09T18:00:00.000Z"),
         id: "work-order-sensor-2404",
-        priority: WorkOrderPriority.MEDIUM,
+        priority: workOrderPriority.MEDIUM,
         startedAt: null,
-        status: WorkOrderStatus.ASSIGNED,
+        status: workOrderStatus.ASSIGNED,
         templateId: "template-sensor-recovery",
         title: "Recover sensor rack communications",
         updatedAt: createdAt,
@@ -228,7 +249,7 @@ const seed = async (): Promise<void> => {
         createdAt: startedAt,
         id: "execution-pump-1",
         notes: "Lockout verified with operations lead. Safe access confirmed.",
-        status: StepStatus.COMPLETED,
+        status: stepStatus.COMPLETED,
         templateStepId: "template-pump-step-1",
         updatedAt: firstStepCompletedAt,
         workOrderId: "work-order-pump-2403",
@@ -239,7 +260,7 @@ const seed = async (): Promise<void> => {
         id: "execution-pump-2",
         notes:
           "Vibration elevated near seal housing. Visual wear present on seal face.",
-        status: StepStatus.IN_PROGRESS,
+        status: stepStatus.IN_PROGRESS,
         templateStepId: "template-pump-step-2",
         updatedAt: incidentCreatedAt,
         workOrderId: "work-order-pump-2403",
@@ -249,7 +270,7 @@ const seed = async (): Promise<void> => {
         createdAt,
         id: "execution-pump-3",
         notes: null,
-        status: StepStatus.PENDING,
+        status: stepStatus.PENDING,
         templateStepId: "template-pump-step-3",
         updatedAt: createdAt,
         workOrderId: "work-order-pump-2403",
@@ -259,7 +280,7 @@ const seed = async (): Promise<void> => {
         createdAt,
         id: "execution-sensor-1",
         notes: null,
-        status: StepStatus.PENDING,
+        status: stepStatus.PENDING,
         templateStepId: "template-sensor-step-1",
         updatedAt: createdAt,
         workOrderId: "work-order-sensor-2404",
@@ -269,7 +290,7 @@ const seed = async (): Promise<void> => {
         createdAt,
         id: "execution-sensor-2",
         notes: null,
-        status: StepStatus.PENDING,
+        status: stepStatus.PENDING,
         templateStepId: "template-sensor-step-2",
         updatedAt: createdAt,
         workOrderId: "work-order-sensor-2404",
@@ -279,7 +300,7 @@ const seed = async (): Promise<void> => {
         createdAt,
         id: "execution-sensor-3",
         notes: null,
-        status: StepStatus.PENDING,
+        status: stepStatus.PENDING,
         templateStepId: "template-sensor-step-3",
         updatedAt: createdAt,
         workOrderId: "work-order-sensor-2404",
@@ -295,8 +316,8 @@ const seed = async (): Promise<void> => {
         "Seal wear is visible on the pump housing and the vibration level feels above the morning baseline.",
       id: "incident-pump-seal-wear",
       reporterId: "user-tech-demo",
-      severity: IncidentSeverity.MEDIUM,
-      status: IncidentStatus.OPEN,
+      severity: incidentSeverity.MEDIUM,
+      status: incidentStatus.OPEN,
       stepExecutionId: "execution-pump-2",
       summary: "Seal wear detected during inspection",
       updatedAt: incidentCreatedAt,
@@ -330,7 +351,7 @@ const seed = async (): Promise<void> => {
         id: "activity-work-order-pump-created",
         metadataJson: {
           code: "WO-2403",
-          status: WorkOrderStatus.IN_PROGRESS,
+          status: workOrderStatus.IN_PROGRESS,
         },
       },
       {
@@ -342,7 +363,7 @@ const seed = async (): Promise<void> => {
         id: "activity-work-order-pump-started",
         metadataJson: {
           code: "WO-2403",
-          status: WorkOrderStatus.IN_PROGRESS,
+          status: workOrderStatus.IN_PROGRESS,
         },
       },
       {
@@ -353,7 +374,7 @@ const seed = async (): Promise<void> => {
         entityType: "INCIDENT",
         id: "activity-incident-created",
         metadataJson: {
-          severity: IncidentSeverity.MEDIUM,
+          severity: incidentSeverity.MEDIUM,
           workOrderCode: "WO-2403",
         },
       },
@@ -366,7 +387,7 @@ const seed = async (): Promise<void> => {
         id: "activity-work-order-sensor-created",
         metadataJson: {
           code: "WO-2404",
-          status: WorkOrderStatus.ASSIGNED,
+          status: workOrderStatus.ASSIGNED,
         },
       },
     ],
