@@ -72,6 +72,10 @@ export const WorkOrderIncidentSummarySchema = z.object({
   summary: z.string().min(1),
 });
 
+export const UpdateStepRequestSchema = z.object({
+  notes: z.string().max(2000).nullable().optional(),
+});
+
 export const WorkOrderListItemSchema = z.object({
   asset: AssetSummarySchema,
   assignedTechnician: AuthUserSchema,
@@ -132,5 +136,6 @@ export type IncidentSeverity = z.infer<typeof IncidentSeveritySchema>;
 export type IncidentStatus = z.infer<typeof IncidentStatusSchema>;
 export type WorkOrderListItem = z.infer<typeof WorkOrderListItemSchema>;
 export type WorkOrderDetail = z.infer<typeof WorkOrderDetailSchema>;
+export type UpdateStepRequest = z.infer<typeof UpdateStepRequestSchema>;
 export type DashboardSummary = z.infer<typeof DashboardSummarySchema>;
 export type ActivityLogItem = z.infer<typeof ActivityLogItemSchema>;

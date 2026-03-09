@@ -149,9 +149,14 @@ const createAuthServiceMock = (user: AuthUser): AuthService => ({
 
 const createWorkOrderServiceMock = (): {
   mocks: {
+    completeStep: ReturnType<typeof vi.fn>;
     getWorkOrderById: ReturnType<typeof vi.fn>;
     listWorkOrders: ReturnType<typeof vi.fn>;
+    pauseWorkOrder: ReturnType<typeof vi.fn>;
+    completeWorkOrder: ReturnType<typeof vi.fn>;
+    startStep: ReturnType<typeof vi.fn>;
     startWorkOrder: ReturnType<typeof vi.fn>;
+    updateStep: ReturnType<typeof vi.fn>;
   };
   service: WorkOrderService;
 } => {
@@ -160,19 +165,30 @@ const createWorkOrderServiceMock = (): {
   const startWorkOrder = vi.fn(() => Promise.resolve(workOrderDetail));
   const pauseWorkOrder = vi.fn(() => Promise.resolve(workOrderDetail));
   const completeWorkOrder = vi.fn(() => Promise.resolve(workOrderDetail));
+  const startStep = vi.fn(() => Promise.resolve(workOrderDetail));
+  const completeStep = vi.fn(() => Promise.resolve(workOrderDetail));
+  const updateStep = vi.fn(() => Promise.resolve(workOrderDetail));
 
   return {
     mocks: {
-      getWorkOrderById,
-      listWorkOrders,
-      startWorkOrder,
-    },
-    service: {
+      completeStep,
       completeWorkOrder,
       getWorkOrderById,
       listWorkOrders,
       pauseWorkOrder,
+      startStep,
       startWorkOrder,
+      updateStep,
+    },
+    service: {
+      completeStep,
+      completeWorkOrder,
+      getWorkOrderById,
+      listWorkOrders,
+      pauseWorkOrder,
+      startStep,
+      startWorkOrder,
+      updateStep,
     },
   };
 };
@@ -321,6 +337,98 @@ describe("work order and dashboard routes", () => {
             role: "TECHNICIAN",
             userId: technicianUser.id,
           },
+          workOrderId: "work-order-pump-2403",
+        },
+      ],
+    ]);
+
+    await app.close();
+  });
+
+  it("starts a step for the assigned technician", async () => {
+    const workOrders = createWorkOrderServiceMock();
+    const app = await buildApp({
+      config: baseConfig,
+      logger: false,
+      services: {
+        auth: createAuthServiceMock(technicianUser),
+        dashboard: createDashboardServiceMock().service,
+        workOrders: workOrders.service,
+      },
+    });
+    const token = app.jwt.sign({
+      role: technicianUser.role,
+      sub: technicianUser.id,
+    });
+
+    const response = await app.inject({
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+      method: "POST",
+      url: "/api/v1/work-orders/work-order-pump-2403/steps/execution-pump-2/start",
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({
+      data: workOrderDetail,
+    });
+    expect(workOrders.mocks.startStep.mock.calls).toEqual([
+      [
+        {
+          actor: {
+            role: "TECHNICIAN",
+            userId: technicianUser.id,
+          },
+          stepExecutionId: "execution-pump-2",
+          workOrderId: "work-order-pump-2403",
+        },
+      ],
+    ]);
+
+    await app.close();
+  });
+
+  it("updates step notes for the assigned technician", async () => {
+    const workOrders = createWorkOrderServiceMock();
+    const app = await buildApp({
+      config: baseConfig,
+      logger: false,
+      services: {
+        auth: createAuthServiceMock(technicianUser),
+        dashboard: createDashboardServiceMock().service,
+        workOrders: workOrders.service,
+      },
+    });
+    const token = app.jwt.sign({
+      role: technicianUser.role,
+      sub: technicianUser.id,
+    });
+
+    const response = await app.inject({
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+      method: "PATCH",
+      payload: {
+        notes: "Vibration concentrated near the seal housing.",
+      },
+      url: "/api/v1/work-orders/work-order-pump-2403/steps/execution-pump-2",
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({
+      data: workOrderDetail,
+    });
+    expect(workOrders.mocks.updateStep.mock.calls).toEqual([
+      [
+        {
+          actor: {
+            role: "TECHNICIAN",
+            userId: technicianUser.id,
+          },
+          notes: "Vibration concentrated near the seal housing.",
+          stepExecutionId: "execution-pump-2",
           workOrderId: "work-order-pump-2403",
         },
       ],

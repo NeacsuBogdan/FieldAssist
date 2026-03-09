@@ -2,6 +2,7 @@ import {
   WorkOrderDetailResponseSchema,
   WorkOrderListResponseSchema,
   WorkOrderStatusSchema,
+  UpdateStepRequestSchema,
 } from "@fieldassist/shared";
 import type { FastifyPluginAsync } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
@@ -17,6 +18,10 @@ const WorkOrderListQuerySchema = z.object({
   status: WorkOrderStatusSchema.optional(),
 });
 
+const StepParamsSchema = WorkOrderParamsSchema.extend({
+  stepExecutionId: z.string().min(1),
+});
+
 const getAuthContext = (
   authContext: {
     role: "TECHNICIAN" | "SUPERVISOR";
@@ -29,6 +34,9 @@ const getAuthContext = (
 
   return authContext;
 };
+
+const withOptionalNotes = (notes: string | null | undefined) =>
+  notes === undefined ? {} : { notes };
 
 const workOrderRoutes: FastifyPluginAsync = (app) => {
   const routes = app.withTypeProvider<ZodTypeProvider>();
@@ -144,6 +152,79 @@ const workOrderRoutes: FastifyPluginAsync = (app) => {
         data: await routes.services.workOrders.completeWorkOrder({
           actor,
           workOrderId: request.params.id,
+        }),
+      };
+    },
+  );
+
+  routes.post(
+    "/:id/steps/:stepExecutionId/start",
+    {
+      preHandler: [routes.authorize(["TECHNICIAN"])],
+      schema: {
+        params: StepParamsSchema,
+        response: {
+          200: WorkOrderDetailResponseSchema,
+        },
+      },
+    },
+    async (request) => {
+      const actor = getAuthContext(request.authContext);
+      return {
+        data: await routes.services.workOrders.startStep({
+          actor,
+          stepExecutionId: request.params.stepExecutionId,
+          workOrderId: request.params.id,
+        }),
+      };
+    },
+  );
+
+  routes.post(
+    "/:id/steps/:stepExecutionId/complete",
+    {
+      preHandler: [routes.authorize(["TECHNICIAN"])],
+      schema: {
+        body: UpdateStepRequestSchema,
+        params: StepParamsSchema,
+        response: {
+          200: WorkOrderDetailResponseSchema,
+        },
+      },
+    },
+    async (request) => {
+      const actor = getAuthContext(request.authContext);
+      return {
+        data: await routes.services.workOrders.completeStep({
+          actor,
+          stepExecutionId: request.params.stepExecutionId,
+          workOrderId: request.params.id,
+          ...withOptionalNotes(request.body.notes),
+        }),
+      };
+    },
+  );
+
+  routes.patch(
+    "/:id/steps/:stepExecutionId",
+    {
+      preHandler: [routes.authorize(["TECHNICIAN"])],
+      schema: {
+        body: UpdateStepRequestSchema,
+        params: StepParamsSchema,
+        response: {
+          200: WorkOrderDetailResponseSchema,
+        },
+      },
+    },
+    async (request) => {
+      const actor = getAuthContext(request.authContext);
+      return {
+        data: await routes.services.workOrders.updateStep({
+          actor,
+          stepExecutionId: request.params.stepExecutionId,
+          workOrderId: request.params.id,
+          ...withOptionalNotes(request.body.notes),
         }),
       };
     },

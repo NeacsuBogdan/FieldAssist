@@ -83,12 +83,20 @@ type MutateWorkOrderInput = {
   workOrderId: string;
 };
 
+type MutateStepInput = MutateWorkOrderInput & {
+  notes?: string | null;
+  stepExecutionId: string;
+};
+
 export interface WorkOrderService {
   completeWorkOrder(input: MutateWorkOrderInput): Promise<WorkOrderDetail>;
+  completeStep(input: MutateStepInput): Promise<WorkOrderDetail>;
   getWorkOrderById(input: MutateWorkOrderInput): Promise<WorkOrderDetail>;
   listWorkOrders(input: ListWorkOrdersInput): Promise<WorkOrderListItem[]>;
   pauseWorkOrder(input: MutateWorkOrderInput): Promise<WorkOrderDetail>;
+  startStep(input: MutateStepInput): Promise<WorkOrderDetail>;
   startWorkOrder(input: MutateWorkOrderInput): Promise<WorkOrderDetail>;
+  updateStep(input: MutateStepInput): Promise<WorkOrderDetail>;
 }
 
 const formatDate = (value: Date | null): string | null =>
@@ -118,6 +126,13 @@ const getNextStepLabel = (record: WorkOrderRecord): string | null => {
 
   return nextStep?.templateStep.title ?? null;
 };
+
+const getInProgressStep = (record: WorkOrderRecord) =>
+  sortStepExecutions(record).find((step) => step.status === "IN_PROGRESS") ??
+  null;
+
+const getFirstPendingStep = (record: WorkOrderRecord) =>
+  sortStepExecutions(record).find((step) => step.status === "PENDING") ?? null;
 
 const mapWorkOrderListItem = (record: WorkOrderRecord): WorkOrderListItem => ({
   asset: {
@@ -195,6 +210,40 @@ const ensureMutableStatus = (
   }
 };
 
+const getStepRecord = (
+  record: WorkOrderRecord,
+  stepExecutionId: string,
+): WorkOrderRecord["stepExecutions"][number] => {
+  const step = record.stepExecutions.find((candidate) => candidate.id === stepExecutionId);
+
+  if (!step) {
+    throw new NotFoundError("Work order step was not found.");
+  }
+
+  return step;
+};
+
+const hasIncompletePriorSteps = (
+  record: WorkOrderRecord,
+  step: WorkOrderRecord["stepExecutions"][number],
+): boolean =>
+  sortStepExecutions(record).some(
+    (candidate) =>
+      candidate.templateStep.order < step.templateStep.order &&
+      candidate.status !== "COMPLETED" &&
+      candidate.status !== "SKIPPED",
+  );
+
+const getNextPendingStep = (
+  record: WorkOrderRecord,
+  step: WorkOrderRecord["stepExecutions"][number],
+) =>
+  sortStepExecutions(record).find(
+    (candidate) =>
+      candidate.templateStep.order > step.templateStep.order &&
+      candidate.status === "PENDING",
+  ) ?? null;
+
 export const createWorkOrderService = ({
   activityLogService,
   prisma,
@@ -226,6 +275,39 @@ export const createWorkOrderService = ({
     const record = await getWorkOrderRecord(workOrderId);
     ensureAccess(record, actor);
     return mapWorkOrderDetail(record);
+  };
+
+  const ensureWorkOrderInProgress = async (
+    record: WorkOrderRecord,
+    actor: AuthContext,
+  ): Promise<void> => {
+    if (record.status === PrismaWorkOrderStatus.IN_PROGRESS) {
+      return;
+    }
+
+    if (record.status === PrismaWorkOrderStatus.COMPLETED) {
+      throw new ConflictError("Completed work orders cannot be modified.");
+    }
+
+    await prisma.workOrder.update({
+      data: {
+        startedAt: record.startedAt ?? new Date(),
+        status: PrismaWorkOrderStatus.IN_PROGRESS,
+      },
+      where: {
+        id: record.id,
+      },
+    });
+
+    await activityLogService.log({
+      action: "work-order.started",
+      actorUserId: actor.userId,
+      entityId: record.id,
+      entityType: "WORK_ORDER",
+      metadata: {
+        status: PrismaWorkOrderStatus.IN_PROGRESS,
+      },
+    });
   };
 
   return {
@@ -265,6 +347,60 @@ export const createWorkOrderService = ({
         entityType: "WORK_ORDER",
         metadata: {
           status: PrismaWorkOrderStatus.COMPLETED,
+        },
+      });
+
+      return getWorkOrderDetailForActor(actor, workOrderId);
+    },
+    completeStep: async ({ actor, notes, stepExecutionId, workOrderId }) => {
+      const record = await getWorkOrderRecord(workOrderId);
+      ensureAccess(record, actor);
+      await ensureWorkOrderInProgress(record, actor);
+
+      const step = getStepRecord(record, stepExecutionId);
+
+      if (hasIncompletePriorSteps(record, step)) {
+        throw new ConflictError(
+          "Earlier steps must be completed before this step can be closed.",
+        );
+      }
+
+      if (step.status === "COMPLETED" || step.status === "SKIPPED") {
+        return getWorkOrderDetailForActor(actor, workOrderId);
+      }
+
+      await prisma.workOrderStepExecution.update({
+        data: {
+          completedAt: new Date(),
+          notes: notes ?? step.notes,
+          status: "COMPLETED",
+        },
+        where: {
+          id: stepExecutionId,
+        },
+      });
+
+      const nextPendingStep = getNextPendingStep(record, step);
+
+      if (nextPendingStep) {
+        await prisma.workOrderStepExecution.update({
+          data: {
+            status: "IN_PROGRESS",
+          },
+          where: {
+            id: nextPendingStep.id,
+          },
+        });
+      }
+
+      await activityLogService.log({
+        action: "step.completed",
+        actorUserId: actor.userId,
+        entityId: stepExecutionId,
+        entityType: "STEP_EXECUTION",
+        metadata: {
+          stepOrder: step.templateStep.order,
+          workOrderId,
         },
       });
 
@@ -333,6 +469,53 @@ export const createWorkOrderService = ({
 
       return getWorkOrderDetailForActor(actor, workOrderId);
     },
+    startStep: async ({ actor, stepExecutionId, workOrderId }) => {
+      const record = await getWorkOrderRecord(workOrderId);
+      ensureAccess(record, actor);
+      await ensureWorkOrderInProgress(record, actor);
+
+      const step = getStepRecord(record, stepExecutionId);
+
+      if (hasIncompletePriorSteps(record, step)) {
+        throw new ConflictError(
+          "Earlier steps must be completed before this step can be started.",
+        );
+      }
+
+      if (step.status === "COMPLETED" || step.status === "SKIPPED") {
+        throw new ConflictError("Completed workflow steps cannot be restarted.");
+      }
+
+      const currentInProgressStep = getInProgressStep(record);
+
+      if (currentInProgressStep && currentInProgressStep.id !== stepExecutionId) {
+        throw new ConflictError("Only one workflow step can be active at a time.");
+      }
+
+      if (step.status !== "IN_PROGRESS") {
+        await prisma.workOrderStepExecution.update({
+          data: {
+            status: "IN_PROGRESS",
+          },
+          where: {
+            id: stepExecutionId,
+          },
+        });
+
+        await activityLogService.log({
+          action: "step.started",
+          actorUserId: actor.userId,
+          entityId: stepExecutionId,
+          entityType: "STEP_EXECUTION",
+          metadata: {
+            stepOrder: step.templateStep.order,
+            workOrderId,
+          },
+        });
+      }
+
+      return getWorkOrderDetailForActor(actor, workOrderId);
+    },
     startWorkOrder: async ({ actor, workOrderId }) => {
       const record = await getWorkOrderRecord(workOrderId);
       ensureAccess(record, actor);
@@ -342,26 +525,51 @@ export const createWorkOrderService = ({
       }
 
       if (record.status !== PrismaWorkOrderStatus.IN_PROGRESS) {
-        await prisma.workOrder.update({
-          data: {
-            startedAt: record.startedAt ?? new Date(),
-            status: PrismaWorkOrderStatus.IN_PROGRESS,
-          },
-          where: {
-            id: workOrderId,
-          },
-        });
-
-        await activityLogService.log({
-          action: "work-order.started",
-          actorUserId: actor.userId,
-          entityId: workOrderId,
-          entityType: "WORK_ORDER",
-          metadata: {
-            status: PrismaWorkOrderStatus.IN_PROGRESS,
-          },
-        });
+        await ensureWorkOrderInProgress(record, actor);
       }
+
+      if (!getInProgressStep(record)) {
+        const firstPendingStep = getFirstPendingStep(record);
+
+        if (firstPendingStep) {
+          await prisma.workOrderStepExecution.update({
+            data: {
+              status: "IN_PROGRESS",
+            },
+            where: {
+              id: firstPendingStep.id,
+            },
+          });
+        }
+      }
+
+      return getWorkOrderDetailForActor(actor, workOrderId);
+    },
+    updateStep: async ({ actor, notes, stepExecutionId, workOrderId }) => {
+      const record = await getWorkOrderRecord(workOrderId);
+      ensureAccess(record, actor);
+      const step = getStepRecord(record, stepExecutionId);
+
+      await prisma.workOrderStepExecution.update({
+        data: {
+          notes: notes ?? null,
+        },
+        where: {
+          id: stepExecutionId,
+        },
+      });
+
+      await activityLogService.log({
+        action: "step.updated",
+        actorUserId: actor.userId,
+        entityId: stepExecutionId,
+        entityType: "STEP_EXECUTION",
+        metadata: {
+          hasNotes: Boolean(notes),
+          stepOrder: step.templateStep.order,
+          workOrderId,
+        },
+      });
 
       return getWorkOrderDetailForActor(actor, workOrderId);
     },

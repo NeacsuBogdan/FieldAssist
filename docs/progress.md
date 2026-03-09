@@ -6,7 +6,7 @@
 - [x] Stage 1 - Database, API foundation, auth
 - [x] Stage 2 - Core domain: assets, templates, work orders
 - [x] Stage 3 - Frontend foundation and auth flow
-- [ ] Stage 4 - Technician experience
+- [x] Stage 4 - Technician experience
 - [ ] Stage 5 - Incident reporting
 - [ ] Stage 6 - Realtime updates
 - [ ] Stage 7 - Polish, accessibility, device-friendly pass
@@ -53,3 +53,11 @@
 - Added a session store, login flow, session revalidation, and protected role-aware routing.
 - Built the initial app shell plus technician work order, supervisor dashboard, incidents placeholder, and shared work order detail screens.
 - Added a frontend login test and verified the monorepo with `pnpm format`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`.
+
+### Stage 4
+
+- Added technician-focused step execution routes for starting steps, saving notes, and completing steps.
+- Expanded the work order service so the active step advances in order and work order state stays consistent as technicians execute the workflow.
+- Rebuilt the work order detail screen around a clear execution panel with large primary actions, progress tracking, voice-ready labels, and current-step note capture.
+- Added frontend tests for the technician queue and interactive work order detail flow.
+- Verified `pnpm --filter @fieldassist/api lint`, `pnpm --filter @fieldassist/api typecheck`, `pnpm --filter @fieldassist/api test`, `pnpm --filter @fieldassist/web lint`, `pnpm --filter @fieldassist/web typecheck`, `pnpm --filter @fieldassist/web test`, and `pnpm --filter @fieldassist/web build`.
