@@ -32,6 +32,8 @@ const getAuthContext = (
   return authContext;
 };
 
+const createOccurredAt = () => new Date().toISOString();
+
 const incidentRoutes: FastifyPluginAsync = (app) => {
   const routes = app.withTypeProvider<ZodTypeProvider>();
 
@@ -74,11 +76,31 @@ const incidentRoutes: FastifyPluginAsync = (app) => {
     },
     async (request) => {
       const actor = getAuthContext(request.authContext);
+      const data = await routes.services.incidents.createIncident({
+        actor,
+        input: request.body,
+      });
+
+      routes.realtime.emitIncidentCreated({
+        incidentId: data.id,
+        occurredAt: createOccurredAt(),
+        workOrderId: data.workOrder.id,
+      });
+      routes.realtime.emitWorkOrderUpdated({
+        occurredAt: createOccurredAt(),
+        workOrderId: data.workOrder.id,
+      });
+      routes.realtime.emitDashboardSummaryUpdated();
+      routes.realtime.emitActivityLogged({
+        entityId: data.id,
+        entityType: "INCIDENT",
+        incidentId: data.id,
+        occurredAt: createOccurredAt(),
+        workOrderId: data.workOrder.id,
+      });
+
       return {
-        data: await routes.services.incidents.createIncident({
-          actor,
-          input: request.body,
-        }),
+        data,
       };
     },
   );
@@ -119,12 +141,32 @@ const incidentRoutes: FastifyPluginAsync = (app) => {
     },
     async (request) => {
       const actor = getAuthContext(request.authContext);
+      const data = await routes.services.incidents.updateIncident({
+        actor,
+        incidentId: request.params.id,
+        input: request.body,
+      });
+
+      routes.realtime.emitIncidentUpdated({
+        incidentId: data.id,
+        occurredAt: createOccurredAt(),
+        workOrderId: data.workOrder.id,
+      });
+      routes.realtime.emitWorkOrderUpdated({
+        occurredAt: createOccurredAt(),
+        workOrderId: data.workOrder.id,
+      });
+      routes.realtime.emitDashboardSummaryUpdated();
+      routes.realtime.emitActivityLogged({
+        entityId: data.id,
+        entityType: "INCIDENT",
+        incidentId: data.id,
+        occurredAt: createOccurredAt(),
+        workOrderId: data.workOrder.id,
+      });
+
       return {
-        data: await routes.services.incidents.updateIncident({
-          actor,
-          incidentId: request.params.id,
-          input: request.body,
-        }),
+        data,
       };
     },
   );

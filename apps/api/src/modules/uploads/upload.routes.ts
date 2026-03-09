@@ -17,6 +17,12 @@ const getAuthContext = (
   return authContext;
 };
 
+const createOccurredAt = () => new Date().toISOString();
+const withOptionalRealtimeId = (
+  key: "incidentId" | "workOrderId",
+  value: string | null,
+) => (value ? { [key]: value } : {});
+
 const uploadRoutes: FastifyPluginAsync = (app) => {
   const routes = app.withTypeProvider<ZodTypeProvider>();
 
@@ -83,13 +89,38 @@ const uploadRoutes: FastifyPluginAsync = (app) => {
         throw new BadRequestError("A file is required.");
       }
 
+      const data = await routes.services.uploads.createAttachment({
+        actor,
+        ...uploadInput,
+        incidentReportId,
+        workOrderId,
+      });
+
+      if (data.workOrderId) {
+        routes.realtime.emitWorkOrderUpdated({
+          occurredAt: createOccurredAt(),
+          workOrderId: data.workOrderId,
+        });
+      }
+
+      if (data.incidentReportId && data.workOrderId) {
+        routes.realtime.emitIncidentUpdated({
+          incidentId: data.incidentReportId,
+          occurredAt: createOccurredAt(),
+          workOrderId: data.workOrderId,
+        });
+      }
+
+      routes.realtime.emitActivityLogged({
+        entityId: data.id,
+        entityType: "ATTACHMENT",
+        occurredAt: createOccurredAt(),
+        ...withOptionalRealtimeId("incidentId", data.incidentReportId),
+        ...withOptionalRealtimeId("workOrderId", data.workOrderId),
+      });
+
       return {
-        data: await routes.services.uploads.createAttachment({
-          actor,
-          ...uploadInput,
-          incidentReportId,
-          workOrderId,
-        }),
+        data,
       };
     },
   );

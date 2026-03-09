@@ -8,7 +8,7 @@
 - [x] Stage 3 - Frontend foundation and auth flow
 - [x] Stage 4 - Technician experience
 - [x] Stage 5 - Incident reporting
-- [ ] Stage 6 - Realtime updates
+- [x] Stage 6 - Realtime updates
 - [ ] Stage 7 - Polish, accessibility, device-friendly pass
 - [ ] Stage 8 - Test hardening, CI, docs, final cleanup
 
@@ -69,4 +69,13 @@
 - Expanded the technician work order experience with an incident reporting form, optional attachment upload, and linked incident log.
 - Replaced the supervisor incidents placeholder with a triage workspace that loads incident detail, shows attachments, and supports lifecycle updates.
 - Added API route coverage for incident creation, updates, and authorization plus frontend tests for the incident report form and supervisor incident workspace.
+- Verified `pnpm --filter @fieldassist/api lint`, `pnpm --filter @fieldassist/api typecheck`, `pnpm --filter @fieldassist/api test`, `pnpm --filter @fieldassist/api build`, `pnpm --filter @fieldassist/web lint`, `pnpm --filter @fieldassist/web typecheck`, `pnpm --filter @fieldassist/web test`, and `pnpm --filter @fieldassist/web build`.
+
+### Stage 6
+
+- Added an authenticated Socket.IO gateway on the API and broadcast events for work order, step, incident, dashboard, and activity changes.
+- Connected the mutation routes to the realtime gateway so work order, incident, and attachment changes trigger the appropriate live events.
+- Added a shared realtime sync component in the web app that listens for socket events and invalidates React Query caches instead of duplicating state over the socket.
+- Updated the supervisor dashboard copy and activity presentation to reflect the live update model.
+- Added automated coverage for the client-side realtime invalidation behavior and ran a live socket smoke script that confirmed a supervisor connection receives `incident.created` immediately after the API mutation route runs.
 - Verified `pnpm --filter @fieldassist/api lint`, `pnpm --filter @fieldassist/api typecheck`, `pnpm --filter @fieldassist/api test`, `pnpm --filter @fieldassist/api build`, `pnpm --filter @fieldassist/web lint`, `pnpm --filter @fieldassist/web typecheck`, `pnpm --filter @fieldassist/web test`, and `pnpm --filter @fieldassist/web build`.

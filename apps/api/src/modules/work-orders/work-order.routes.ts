@@ -38,6 +38,8 @@ const getAuthContext = (
 const withOptionalNotes = (notes: string | null | undefined) =>
   notes === undefined ? {} : { notes };
 
+const createOccurredAt = () => new Date().toISOString();
+
 const workOrderRoutes: FastifyPluginAsync = (app) => {
   const routes = app.withTypeProvider<ZodTypeProvider>();
 
@@ -104,11 +106,25 @@ const workOrderRoutes: FastifyPluginAsync = (app) => {
     },
     async (request) => {
       const actor = getAuthContext(request.authContext);
+      const data = await routes.services.workOrders.startWorkOrder({
+        actor,
+        workOrderId: request.params.id,
+      });
+
+      routes.realtime.emitWorkOrderUpdated({
+        occurredAt: createOccurredAt(),
+        workOrderId: request.params.id,
+      });
+      routes.realtime.emitDashboardSummaryUpdated();
+      routes.realtime.emitActivityLogged({
+        entityId: request.params.id,
+        entityType: "WORK_ORDER",
+        occurredAt: createOccurredAt(),
+        workOrderId: request.params.id,
+      });
+
       return {
-        data: await routes.services.workOrders.startWorkOrder({
-          actor,
-          workOrderId: request.params.id,
-        }),
+        data,
       };
     },
   );
@@ -126,11 +142,25 @@ const workOrderRoutes: FastifyPluginAsync = (app) => {
     },
     async (request) => {
       const actor = getAuthContext(request.authContext);
+      const data = await routes.services.workOrders.pauseWorkOrder({
+        actor,
+        workOrderId: request.params.id,
+      });
+
+      routes.realtime.emitWorkOrderUpdated({
+        occurredAt: createOccurredAt(),
+        workOrderId: request.params.id,
+      });
+      routes.realtime.emitDashboardSummaryUpdated();
+      routes.realtime.emitActivityLogged({
+        entityId: request.params.id,
+        entityType: "WORK_ORDER",
+        occurredAt: createOccurredAt(),
+        workOrderId: request.params.id,
+      });
+
       return {
-        data: await routes.services.workOrders.pauseWorkOrder({
-          actor,
-          workOrderId: request.params.id,
-        }),
+        data,
       };
     },
   );
@@ -148,11 +178,25 @@ const workOrderRoutes: FastifyPluginAsync = (app) => {
     },
     async (request) => {
       const actor = getAuthContext(request.authContext);
+      const data = await routes.services.workOrders.completeWorkOrder({
+        actor,
+        workOrderId: request.params.id,
+      });
+
+      routes.realtime.emitWorkOrderUpdated({
+        occurredAt: createOccurredAt(),
+        workOrderId: request.params.id,
+      });
+      routes.realtime.emitDashboardSummaryUpdated();
+      routes.realtime.emitActivityLogged({
+        entityId: request.params.id,
+        entityType: "WORK_ORDER",
+        occurredAt: createOccurredAt(),
+        workOrderId: request.params.id,
+      });
+
       return {
-        data: await routes.services.workOrders.completeWorkOrder({
-          actor,
-          workOrderId: request.params.id,
-        }),
+        data,
       };
     },
   );
@@ -170,12 +214,32 @@ const workOrderRoutes: FastifyPluginAsync = (app) => {
     },
     async (request) => {
       const actor = getAuthContext(request.authContext);
+      const data = await routes.services.workOrders.startStep({
+        actor,
+        stepExecutionId: request.params.stepExecutionId,
+        workOrderId: request.params.id,
+      });
+
+      routes.realtime.emitStepUpdated({
+        occurredAt: createOccurredAt(),
+        stepExecutionId: request.params.stepExecutionId,
+        workOrderId: request.params.id,
+      });
+      routes.realtime.emitWorkOrderUpdated({
+        occurredAt: createOccurredAt(),
+        workOrderId: request.params.id,
+      });
+      routes.realtime.emitDashboardSummaryUpdated();
+      routes.realtime.emitActivityLogged({
+        entityId: request.params.stepExecutionId,
+        entityType: "STEP_EXECUTION",
+        occurredAt: createOccurredAt(),
+        stepExecutionId: request.params.stepExecutionId,
+        workOrderId: request.params.id,
+      });
+
       return {
-        data: await routes.services.workOrders.startStep({
-          actor,
-          stepExecutionId: request.params.stepExecutionId,
-          workOrderId: request.params.id,
-        }),
+        data,
       };
     },
   );
@@ -194,13 +258,33 @@ const workOrderRoutes: FastifyPluginAsync = (app) => {
     },
     async (request) => {
       const actor = getAuthContext(request.authContext);
+      const data = await routes.services.workOrders.completeStep({
+        actor,
+        stepExecutionId: request.params.stepExecutionId,
+        workOrderId: request.params.id,
+        ...withOptionalNotes(request.body.notes),
+      });
+
+      routes.realtime.emitStepUpdated({
+        occurredAt: createOccurredAt(),
+        stepExecutionId: request.params.stepExecutionId,
+        workOrderId: request.params.id,
+      });
+      routes.realtime.emitWorkOrderUpdated({
+        occurredAt: createOccurredAt(),
+        workOrderId: request.params.id,
+      });
+      routes.realtime.emitDashboardSummaryUpdated();
+      routes.realtime.emitActivityLogged({
+        entityId: request.params.stepExecutionId,
+        entityType: "STEP_EXECUTION",
+        occurredAt: createOccurredAt(),
+        stepExecutionId: request.params.stepExecutionId,
+        workOrderId: request.params.id,
+      });
+
       return {
-        data: await routes.services.workOrders.completeStep({
-          actor,
-          stepExecutionId: request.params.stepExecutionId,
-          workOrderId: request.params.id,
-          ...withOptionalNotes(request.body.notes),
-        }),
+        data,
       };
     },
   );
@@ -219,13 +303,32 @@ const workOrderRoutes: FastifyPluginAsync = (app) => {
     },
     async (request) => {
       const actor = getAuthContext(request.authContext);
+      const data = await routes.services.workOrders.updateStep({
+        actor,
+        stepExecutionId: request.params.stepExecutionId,
+        workOrderId: request.params.id,
+        ...withOptionalNotes(request.body.notes),
+      });
+
+      routes.realtime.emitStepUpdated({
+        occurredAt: createOccurredAt(),
+        stepExecutionId: request.params.stepExecutionId,
+        workOrderId: request.params.id,
+      });
+      routes.realtime.emitWorkOrderUpdated({
+        occurredAt: createOccurredAt(),
+        workOrderId: request.params.id,
+      });
+      routes.realtime.emitActivityLogged({
+        entityId: request.params.stepExecutionId,
+        entityType: "STEP_EXECUTION",
+        occurredAt: createOccurredAt(),
+        stepExecutionId: request.params.stepExecutionId,
+        workOrderId: request.params.id,
+      });
+
       return {
-        data: await routes.services.workOrders.updateStep({
-          actor,
-          stepExecutionId: request.params.stepExecutionId,
-          workOrderId: request.params.id,
-          ...withOptionalNotes(request.body.notes),
-        }),
+        data,
       };
     },
   );

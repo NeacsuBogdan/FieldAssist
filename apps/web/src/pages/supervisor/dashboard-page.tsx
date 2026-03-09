@@ -58,8 +58,8 @@ export const SupervisorDashboardPage = () => {
           </h2>
         </div>
         <p className="max-w-xl text-sm leading-6 text-steel-600">
-          High-signal visibility into active jobs, open incidents, and the
-          timeline that will later feed realtime updates.
+          High-signal visibility into active jobs, open incidents, and the live
+          operational timeline.
         </p>
       </div>
 
@@ -100,9 +100,9 @@ export const SupervisorDashboardPage = () => {
               </div>
               <div className="text-sm text-steel-600">
                 {item.actor
-                  ? `${item.actor.fullName} · ${item.actor.role.toLowerCase()}`
+                  ? `${item.actor.fullName} - ${item.actor.role.toLowerCase()}`
                   : "System"}{" "}
-                · {item.entityId}
+                - {item.entityId}
               </div>
             </article>
           ))}

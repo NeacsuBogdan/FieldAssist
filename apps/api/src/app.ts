@@ -32,6 +32,9 @@ import {
   createIncidentService,
   type IncidentService,
 } from "./modules/incidents/incident.service.js";
+import {
+  createRealtimeGateway,
+} from "./modules/realtime/realtime.gateway.js";
 import uploadRoutes from "./modules/uploads/upload.routes.js";
 import {
   createUploadService,
@@ -108,6 +111,11 @@ export const buildApp = async (options: BuildAppOptions = {}) => {
     secret: config.JWT_SECRET,
   });
 
+  const realtime = createRealtimeGateway({
+    app,
+    corsOrigin: config.CORS_ORIGIN,
+  });
+
   const activityLogService = createActivityLogService(prisma);
   const authService =
     options.services?.auth ??
@@ -140,6 +148,7 @@ export const buildApp = async (options: BuildAppOptions = {}) => {
 
   app.decorate("config", config);
   app.decorate("prisma", prisma);
+  app.decorate("realtime", realtime);
   app.decorate("services", {
     auth: authService,
     dashboard,
@@ -224,6 +233,7 @@ export const buildApp = async (options: BuildAppOptions = {}) => {
   });
 
   app.addHook("onClose", async () => {
+    await realtime.close();
     await prisma.$disconnect();
   });
 
