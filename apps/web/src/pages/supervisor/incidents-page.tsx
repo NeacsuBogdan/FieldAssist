@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 import { ErrorPanel } from "@/components/states/error-panel";
+import { EmptyPanel } from "@/components/states/empty-panel";
 import { LoadingPanel } from "@/components/states/loading-panel";
 import { Button } from "@/components/ui/button";
 import { SelectInput } from "@/components/ui/select-input";
@@ -175,15 +176,10 @@ export const SupervisorIncidentsPage = () => {
       </div>
 
       {incidentsQuery.data.length === 0 ? (
-        <div className="panel grid gap-3 p-6">
-          <h3 className="text-2xl font-semibold text-steel-900">
-            No incidents reported
-          </h3>
-          <p className="text-sm leading-6 text-steel-600">
-            Incident cards will appear here as technicians escalate issues from
-            their work orders.
-          </p>
-        </div>
+        <EmptyPanel
+          description="Incident cards will appear here as technicians escalate issues from active work orders."
+          title="No incidents reported"
+        />
       ) : (
         <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
           <section className="panel grid gap-4 p-6">
@@ -329,6 +325,7 @@ export const SupervisorIncidentsPage = () => {
                 <div className="grid gap-4 md:grid-cols-2">
                   <SelectInput
                     aria-label="Incident triage severity"
+                    data-voice-label="incident triage severity"
                     label="Severity"
                     onChange={(event) => {
                       setFeedback(null);
@@ -341,6 +338,7 @@ export const SupervisorIncidentsPage = () => {
                   />
                   <SelectInput
                     aria-label="Incident lifecycle status"
+                    data-voice-label="incident lifecycle status"
                     label="Status"
                     onChange={(event) => {
                       setFeedback(null);

@@ -37,6 +37,8 @@ export const LoginPage = () => {
     return <Navigate replace to={roleHomeMap[user.role]} />;
   }
 
+  const formMessage = validationMessage ?? loginMutation.error?.message ?? null;
+
   return (
     <div className="surface-grid min-h-screen">
       <div className="mx-auto grid min-h-screen w-full max-w-7xl gap-6 px-4 py-4 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8">
@@ -108,6 +110,41 @@ export const LoginPage = () => {
               </p>
             </div>
 
+            <div className="grid gap-3 rounded-3xl border border-steel-100 bg-steel-50/70 p-4 sm:grid-cols-2">
+              <button
+                aria-label="Use technician demo account"
+                className="rounded-2xl border border-transparent bg-white px-4 py-3 text-left transition hover:border-steel-200"
+                data-voice-label="use technician demo account"
+                onClick={() => {
+                  setValidationMessage(null);
+                  setEmail("technician@fieldassist.local");
+                  setPassword("FieldAssist123!");
+                }}
+                type="button"
+              >
+                <div className="data-label">Technician</div>
+                <div className="mt-2 text-sm font-medium text-steel-900">
+                  Use technician demo access
+                </div>
+              </button>
+              <button
+                aria-label="Use supervisor demo account"
+                className="rounded-2xl border border-transparent bg-white px-4 py-3 text-left transition hover:border-steel-200"
+                data-voice-label="use supervisor demo account"
+                onClick={() => {
+                  setValidationMessage(null);
+                  setEmail("supervisor@fieldassist.local");
+                  setPassword("FieldAssist123!");
+                }}
+                type="button"
+              >
+                <div className="data-label">Supervisor</div>
+                <div className="mt-2 text-sm font-medium text-steel-900">
+                  Use supervisor demo access
+                </div>
+              </button>
+            </div>
+
             <form
               className="grid gap-5"
               onSubmit={(event) => {
@@ -132,10 +169,14 @@ export const LoginPage = () => {
               <TextInput
                 aria-label="Email"
                 autoComplete="email"
+                autoCapitalize="none"
+                autoCorrect="off"
                 data-voice-label="email"
                 label="Email"
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="you@fieldassist.local"
+                required
+                spellCheck={false}
                 type="email"
                 value={email}
               />
@@ -144,9 +185,10 @@ export const LoginPage = () => {
                 autoComplete="current-password"
                 data-voice-label="password"
                 label="Password"
-                message={validationMessage ?? loginMutation.error?.message}
+                message={formMessage ?? undefined}
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="Enter your password"
+                required
                 type="password"
                 value={password}
               />

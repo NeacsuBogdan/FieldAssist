@@ -56,6 +56,16 @@ export const IncidentReportCard = ({
     useState<(typeof severityOptions)[number]["value"]>("MEDIUM");
   const [summary, setSummary] = useState("");
 
+  const resetForm = () => {
+    setAttachmentFile(null);
+    setCategory("MECHANICAL");
+    setDetails("");
+    setFeedback(null);
+    setSelectedStepId(currentStepId ?? "");
+    setSeverity("MEDIUM");
+    setSummary("");
+  };
+
   useEffect(() => {
     setSelectedStepId((currentValue) => {
       if (currentValue && steps.some((step) => step.id === currentValue)) {
@@ -120,18 +130,13 @@ export const IncidentReportCard = ({
       });
     },
     onSuccess: async ({ warningMessage }) => {
-      setCategory("MECHANICAL");
-      setDetails("");
+      resetForm();
       setFeedback({
         message:
           warningMessage ??
           "Incident submitted and linked to the active work order.",
         tone: warningMessage ? "warning" : "success",
       });
-      setSelectedStepId(currentStepId ?? "");
-      setSeverity("MEDIUM");
-      setSummary("");
-      setAttachmentFile(null);
 
       await Promise.all([
         queryClient.invalidateQueries({
@@ -148,7 +153,14 @@ export const IncidentReportCard = ({
   });
 
   return (
-    <section className="panel grid gap-5 p-6">
+    <form
+      className="panel grid gap-5 p-6"
+      onSubmit={(event) => {
+        event.preventDefault();
+
+        createIncidentMutation.mutate();
+      }}
+    >
       <div>
         <span className="data-label">Incident reporting</span>
         <h3 className="mt-2 text-2xl font-semibold text-steel-900">
@@ -200,6 +212,7 @@ export const IncidentReportCard = ({
       <div className="grid gap-4 md:grid-cols-2">
         <TextInput
           aria-label="Incident category"
+          autoCapitalize="characters"
           data-voice-label="incident category"
           label="Category"
           onChange={(event) => {
@@ -207,6 +220,8 @@ export const IncidentReportCard = ({
             setCategory(event.target.value);
           }}
           placeholder="MECHANICAL"
+          required
+          spellCheck={false}
           value={category}
         />
         <TextInput
@@ -218,6 +233,7 @@ export const IncidentReportCard = ({
             setSummary(event.target.value);
           }}
           placeholder="Describe the immediate issue"
+          required
           value={summary}
         />
       </div>
@@ -231,6 +247,7 @@ export const IncidentReportCard = ({
           setDetails(event.target.value);
         }}
         placeholder="Capture what you observed, the local impact, and anything the supervisor should know before triage."
+        required
         rows={6}
         value={details}
       />
@@ -282,9 +299,7 @@ export const IncidentReportCard = ({
             details.trim().length === 0 ||
             summary.trim().length === 0
           }
-          onClick={() => {
-            createIncidentMutation.mutate();
-          }}
+          type="submit"
         >
           {createIncidentMutation.isPending
             ? "Submitting incident..."
@@ -295,19 +310,14 @@ export const IncidentReportCard = ({
           data-voice-label="clear incident form"
           disabled={createIncidentMutation.isPending}
           onClick={() => {
-            setAttachmentFile(null);
-            setCategory("MECHANICAL");
-            setDetails("");
-            setFeedback(null);
-            setSelectedStepId(currentStepId ?? "");
-            setSeverity("MEDIUM");
-            setSummary("");
+            resetForm();
           }}
+          type="button"
           variant="secondary"
         >
           Clear form
         </Button>
       </div>
-    </section>
+    </form>
   );
 };

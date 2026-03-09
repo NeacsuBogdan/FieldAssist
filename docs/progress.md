@@ -9,7 +9,7 @@
 - [x] Stage 4 - Technician experience
 - [x] Stage 5 - Incident reporting
 - [x] Stage 6 - Realtime updates
-- [ ] Stage 7 - Polish, accessibility, device-friendly pass
+- [x] Stage 7 - Polish, accessibility, device-friendly pass
 - [ ] Stage 8 - Test hardening, CI, docs, final cleanup
 
 ## Audit notes
@@ -79,3 +79,12 @@
 - Updated the supervisor dashboard copy and activity presentation to reflect the live update model.
 - Added automated coverage for the client-side realtime invalidation behavior and ran a live socket smoke script that confirmed a supervisor connection receives `incident.created` immediately after the API mutation route runs.
 - Verified `pnpm --filter @fieldassist/api lint`, `pnpm --filter @fieldassist/api typecheck`, `pnpm --filter @fieldassist/api test`, `pnpm --filter @fieldassist/api build`, `pnpm --filter @fieldassist/web lint`, `pnpm --filter @fieldassist/web typecheck`, `pnpm --filter @fieldassist/web test`, and `pnpm --filter @fieldassist/web build`.
+
+### Stage 7
+
+- Added a live sync status indicator to the app shell so technicians and supervisors can see whether realtime connectivity is active.
+- Introduced shared empty-state presentation and applied it to the technician queue, supervisor dashboard activity timeline, and incidents workspace.
+- Tightened form accessibility in the shared input primitives with explicit required state, input-to-message associations, and clearer demo account actions on the login screen.
+- Polished the incident reporting and supervisor triage flows with stronger voice labels, semantic form submission, and a dashboard summary card for blocked work orders.
+- Added frontend coverage for the technician empty queue and supervisor dashboard empty activity state.
+- Verified `pnpm --filter @fieldassist/web lint`, `pnpm --filter @fieldassist/web typecheck`, `pnpm --filter @fieldassist/web test`, `pnpm --filter @fieldassist/web build`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`.

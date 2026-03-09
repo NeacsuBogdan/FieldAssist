@@ -2,6 +2,7 @@ import type { AuthUser } from "@fieldassist/shared";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
+import { useRealtimeStore } from "@/features/realtime/realtime-store";
 import { cn } from "@/lib/utils";
 
 type NavigationItem = {
@@ -37,8 +38,21 @@ export const AppShell = ({
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const realtimeStatus = useRealtimeStore((state) => state.status);
 
   const items = navigationItems.filter((item) => item.role === user.role);
+  const realtimeLabel =
+    realtimeStatus === "live"
+      ? "Live sync"
+      : realtimeStatus === "connecting"
+        ? "Connecting"
+        : "Offline";
+  const realtimeStyles =
+    realtimeStatus === "live"
+      ? "bg-emerald-50 text-emerald-700"
+      : realtimeStatus === "connecting"
+        ? "bg-amber-50 text-amber-800"
+        : "bg-stone-100 text-stone-700";
 
   return (
     <div className="surface-grid min-h-screen">
@@ -119,11 +133,22 @@ export const AppShell = ({
         <main className="mt-4 flex-1 lg:mt-0">
           <div className="panel flex min-h-[calc(100vh-3rem)] flex-col overflow-hidden">
             <header className="border-b border-steel-100 px-5 py-4 sm:px-8">
-              <span className="data-label">
-                {location.pathname
-                  .replace("/app/", "")
-                  .replaceAll("/", " / ") || "workspace"}
-              </span>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <span className="data-label">
+                  {location.pathname
+                    .replace("/app/", "")
+                    .replaceAll("/", " / ") || "workspace"}
+                </span>
+                <span
+                  aria-live="polite"
+                  className={cn(
+                    "inline-flex items-center rounded-full px-3 py-1 text-xs font-medium",
+                    realtimeStyles,
+                  )}
+                >
+                  {realtimeLabel}
+                </span>
+              </div>
             </header>
             <div className="flex-1 px-5 py-5 sm:px-8 sm:py-8">
               <Outlet />

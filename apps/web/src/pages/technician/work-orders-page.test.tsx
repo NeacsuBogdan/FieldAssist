@@ -92,4 +92,25 @@ describe("TechnicianWorkOrdersPage", () => {
       timeout: 3_000,
     });
   });
+
+  it("renders an empty state when no work orders are assigned", async () => {
+    vi.mocked(workOrdersApi.list).mockResolvedValue([]);
+
+    render(
+      <QueryClientProvider client={createTestQueryClient()}>
+        <MemoryRouter>
+          <TechnicianWorkOrdersPage />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "No assigned work orders",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Assigned work orders will appear here/i),
+    ).toBeInTheDocument();
+  });
 });

@@ -2,6 +2,7 @@ import type { ActivityLogItem, DashboardSummary } from "@fieldassist/shared";
 import { useQuery } from "@tanstack/react-query";
 
 import { ErrorPanel } from "@/components/states/error-panel";
+import { EmptyPanel } from "@/components/states/empty-panel";
 import { LoadingPanel } from "@/components/states/loading-panel";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { dashboardApi } from "@/features/dashboard/dashboard-api";
@@ -12,6 +13,7 @@ const summaryCards: Array<{
 }> = [
   { key: "activeWorkOrders", label: "Active work orders" },
   { key: "assignedWorkOrders", label: "Assigned work orders" },
+  { key: "blockedWorkOrders", label: "Blocked work orders" },
   { key: "openIncidents", label: "Open incidents" },
   { key: "techniciansActive", label: "Technicians active" },
 ];
@@ -63,7 +65,7 @@ export const SupervisorDashboardPage = () => {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {summaryCards.map((card) => (
           <section className="panel p-5" key={card.key}>
             <div className="data-label">{card.label}</div>
@@ -83,30 +85,37 @@ export const SupervisorDashboardPage = () => {
             </h3>
           </div>
         </div>
-        <div className="grid gap-4">
-          {activityQuery.data.map((item: ActivityLogItem) => (
-            <article
-              className="grid gap-3 rounded-3xl border border-steel-100 bg-steel-50/70 p-5"
-              key={item.id}
-            >
-              <div className="flex flex-wrap items-center gap-3">
-                <StatusBadge value={item.entityType} />
-                <span className="data-label">
-                  {new Date(item.createdAt).toLocaleString()}
-                </span>
-              </div>
-              <div className="text-lg font-semibold text-steel-900">
-                {item.action}
-              </div>
-              <div className="text-sm text-steel-600">
-                {item.actor
-                  ? `${item.actor.fullName} - ${item.actor.role.toLowerCase()}`
-                  : "System"}{" "}
-                - {item.entityId}
-              </div>
-            </article>
-          ))}
-        </div>
+        {activityQuery.data.length === 0 ? (
+          <EmptyPanel
+            description="Activity entries appear here as technicians progress work orders, report incidents, and supervisors update triage state."
+            title="No recent activity"
+          />
+        ) : (
+          <div className="grid gap-4">
+            {activityQuery.data.map((item: ActivityLogItem) => (
+              <article
+                className="grid gap-3 rounded-3xl border border-steel-100 bg-steel-50/70 p-5"
+                key={item.id}
+              >
+                <div className="flex flex-wrap items-center gap-3">
+                  <StatusBadge value={item.entityType} />
+                  <span className="data-label">
+                    {new Date(item.createdAt).toLocaleString()}
+                  </span>
+                </div>
+                <div className="text-lg font-semibold text-steel-900">
+                  {item.action}
+                </div>
+                <div className="text-sm text-steel-600">
+                  {item.actor
+                    ? `${item.actor.fullName} - ${item.actor.role.toLowerCase()}`
+                    : "System"}{" "}
+                  - {item.entityId}
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );

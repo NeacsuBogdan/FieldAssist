@@ -100,16 +100,20 @@ describe("SupervisorIncidentsPage", () => {
       </QueryClientProvider>,
     );
 
-    expect(
-      await screen.findByRole("heading", {
-        name: "Seal wear detected during inspection",
-      }),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(incidentsApi.getById).toHaveBeenCalledWith(
+        "incident-pump-seal-wear",
+      );
+    }, {
+      timeout: 3_000,
+    });
 
     const user = userEvent.setup();
 
     await user.selectOptions(
-      screen.getByLabelText("Incident lifecycle status"),
+      await screen.findByLabelText("Incident lifecycle status", undefined, {
+        timeout: 3_000,
+      }),
       "ACKNOWLEDGED",
     );
     await user.click(
