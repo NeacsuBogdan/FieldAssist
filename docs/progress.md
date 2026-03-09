@@ -92,11 +92,11 @@
 ### Stage 8
 
 - Added root-level Playwright coverage with seeded technician and supervisor smoke flows plus a shared login helper.
-- Replaced the placeholder `pnpm test:e2e` script with a real Playwright configuration and added a browser install helper script.
+- Replaced the placeholder `pnpm test:e2e` script with a real Playwright configuration, added a browser install helper script, and made the suite reseed the demo database before execution for deterministic smoke coverage.
 - Added a GitHub Actions CI workflow that installs dependencies, prepares env files, migrates and seeds PostgreSQL, runs lint, typecheck, unit/integration tests, build, and e2e smoke coverage, and uploads the Playwright report on failure.
 - Added root type coverage for the Playwright config and e2e tests and expanded root linting to include the new Stage 8 files.
+- Raised the web Vitest timeout to 10 seconds so the attachment workflow test remains stable on slower local runs.
 - Improved the Vite build output by splitting large client bundles into smaller chunks so the production build completes without the previous oversized chunk warning.
 - Rewrote the README, architecture notes, product decisions, and API documentation around the finished MVP instead of the earlier staged placeholders.
 - Removed the unused root `.env.example` file and added screenshot placeholder scaffolding under `docs/screenshots`.
-- Verified `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`.
-- Local execution of `pnpm db:up`, `pnpm db:migrate`, `pnpm db:seed`, and `pnpm test:e2e` was blocked in this session because Docker Desktop was unavailable and no local PostgreSQL service was listening on `localhost:5432`.
+- Verified `pnpm db:up`, `pnpm db:migrate`, `pnpm db:seed`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e`, and `pnpm build`.

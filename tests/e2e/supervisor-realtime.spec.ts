@@ -23,7 +23,7 @@ test("seeded supervisor sees work order progress update in near real-time", asyn
     await technicianPage.goto("/app/work-orders/work-order-pump-2403");
 
     await technicianPage
-      .getByLabel("Current step notes")
+      .getByRole("textbox", { name: "Current step notes" })
       .fill("Seal housing wear confirmed. Escalated for supervisor follow-up.");
     await technicianPage
       .getByRole("button", { name: "Complete Inspect seals and vibration" })

@@ -13,12 +13,11 @@ test("seeded technician can complete the first step on an assigned work order", 
 
   await page.getByRole("button", { name: "Start work order" }).click();
   await expect(
-    page.getByRole("button", { name: "Start Confirm fault scope" }),
+    page.getByRole("button", { name: "Complete Confirm fault scope" }),
   ).toBeVisible();
 
-  await page.getByRole("button", { name: "Start Confirm fault scope" }).click();
   await page
-    .getByLabel("Current step notes")
+    .getByRole("textbox", { name: "Current step notes" })
     .fill("Cabinet fault confirmed and line segment isolated for recovery.");
   await page
     .getByRole("button", { name: "Complete Confirm fault scope" })
@@ -26,6 +25,6 @@ test("seeded technician can complete the first step on an assigned work order", 
 
   await expect(page.getByText("33%")).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Start Restore rack communications" }),
+    page.getByRole("button", { name: "Complete Restore rack communications" }),
   ).toBeVisible();
 });

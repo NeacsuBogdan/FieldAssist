@@ -105,7 +105,7 @@ The Playwright suite expects:
 
 - PostgreSQL to be running
 - migrations to be applied
-- demo data to be seeded
+- the suite will reseed demo data automatically before execution
 - Chromium to be installed with `pnpm test:e2e:install`
 
 ## Screenshots
