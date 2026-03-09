@@ -10,7 +10,7 @@
 - [x] Stage 5 - Incident reporting
 - [x] Stage 6 - Realtime updates
 - [x] Stage 7 - Polish, accessibility, device-friendly pass
-- [ ] Stage 8 - Test hardening, CI, docs, final cleanup
+- [x] Stage 8 - Test hardening, CI, docs, final cleanup
 
 ## Audit notes
 
@@ -88,3 +88,15 @@
 - Polished the incident reporting and supervisor triage flows with stronger voice labels, semantic form submission, and a dashboard summary card for blocked work orders.
 - Added frontend coverage for the technician empty queue and supervisor dashboard empty activity state.
 - Verified `pnpm --filter @fieldassist/web lint`, `pnpm --filter @fieldassist/web typecheck`, `pnpm --filter @fieldassist/web test`, `pnpm --filter @fieldassist/web build`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`.
+
+### Stage 8
+
+- Added root-level Playwright coverage with seeded technician and supervisor smoke flows plus a shared login helper.
+- Replaced the placeholder `pnpm test:e2e` script with a real Playwright configuration and added a browser install helper script.
+- Added a GitHub Actions CI workflow that installs dependencies, prepares env files, migrates and seeds PostgreSQL, runs lint, typecheck, unit/integration tests, build, and e2e smoke coverage, and uploads the Playwright report on failure.
+- Added root type coverage for the Playwright config and e2e tests and expanded root linting to include the new Stage 8 files.
+- Improved the Vite build output by splitting large client bundles into smaller chunks so the production build completes without the previous oversized chunk warning.
+- Rewrote the README, architecture notes, product decisions, and API documentation around the finished MVP instead of the earlier staged placeholders.
+- Removed the unused root `.env.example` file and added screenshot placeholder scaffolding under `docs/screenshots`.
+- Verified `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`.
+- Local execution of `pnpm db:up`, `pnpm db:migrate`, `pnpm db:seed`, and `pnpm test:e2e` was blocked in this session because Docker Desktop was unavailable and no local PostgreSQL service was listening on `localhost:5432`.
