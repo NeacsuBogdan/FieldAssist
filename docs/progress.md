@@ -3,7 +3,7 @@
 ## Stage checklist
 
 - [x] Stage 0 - Repo audit and foundation
-- [ ] Stage 1 - Database, API foundation, auth
+- [x] Stage 1 - Database, API foundation, auth
 - [ ] Stage 2 - Core domain: assets, templates, work orders
 - [ ] Stage 3 - Frontend foundation and auth flow
 - [ ] Stage 4 - Technician experience
@@ -28,3 +28,12 @@
 - Added placeholder package wiring for API, web, and shared code.
 - Added baseline README and progress tracking.
 - Verified `pnpm install`, `pnpm lint`, `pnpm typecheck`, and `pnpm build`.
+
+### Stage 1
+
+- Replaced the placeholder API package with a Fastify application and shared route/service structure.
+- Added Prisma schema, migration, and Postgres-backed seed data for technician and supervisor demo users.
+- Implemented `/api/v1/health`, `/api/v1/auth/login`, `/api/v1/auth/logout`, and `/api/v1/auth/me`.
+- Added JWT auth, role-aware request decorators, environment parsing, and centralized error handling.
+- Added auth route tests and verified the seeded login flow against the running app.
+- Verified `pnpm db:up`, `pnpm db:migrate`, `pnpm db:seed`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`.
