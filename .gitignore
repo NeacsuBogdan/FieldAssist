@@ -1,0 +1,15 @@
+node_modules
+.pnpm-store
+dist
+coverage
+.turbo
+.vite
+.cache
+playwright-report
+test-results
+tmp
+uploads
+.env
+.env.local
+.env.*.local
+*.log
