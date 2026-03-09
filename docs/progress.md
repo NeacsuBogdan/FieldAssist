@@ -5,7 +5,7 @@
 - [x] Stage 0 - Repo audit and foundation
 - [x] Stage 1 - Database, API foundation, auth
 - [x] Stage 2 - Core domain: assets, templates, work orders
-- [ ] Stage 3 - Frontend foundation and auth flow
+- [x] Stage 3 - Frontend foundation and auth flow
 - [ ] Stage 4 - Technician experience
 - [ ] Stage 5 - Incident reporting
 - [ ] Stage 6 - Realtime updates
@@ -46,3 +46,10 @@
 - Implemented supervisor dashboard summary and activity routes.
 - Added route tests for work order and dashboard behavior and verified seeded live data through API smoke checks.
 - Verified `pnpm db:migrate`, `pnpm db:seed`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`.
+
+### Stage 3
+
+- Created the Vite + React + TypeScript frontend with Tailwind CSS, React Router, TanStack Query, and Zustand.
+- Added a session store, login flow, session revalidation, and protected role-aware routing.
+- Built the initial app shell plus technician work order, supervisor dashboard, incidents placeholder, and shared work order detail screens.
+- Added a frontend login test and verified the monorepo with `pnpm format`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`.

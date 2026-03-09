@@ -1,0 +1,22 @@
+import "@fontsource/ibm-plex-mono";
+import "@fontsource/space-grotesk/400.css";
+import "@fontsource/space-grotesk/500.css";
+import "@fontsource/space-grotesk/700.css";
+
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+
+import { App } from "./app/app";
+import "./index.css";
+
+const rootElement = document.getElementById("root");
+
+if (!rootElement) {
+  throw new Error("Root element was not found.");
+}
+
+createRoot(rootElement).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+);

@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color: #0f172a;
+    background:
+      radial-gradient(
+        circle at top left,
+        rgba(249, 115, 22, 0.14),
+        transparent 32%
+      ),
+      radial-gradient(
+        circle at top right,
+        rgba(15, 118, 110, 0.14),
+        transparent 28%
+      ),
+      linear-gradient(180deg, #f7faf9 0%, #e9efec 100%);
+    font-family: "Space Grotesk", system-ui, sans-serif;
+  }
+
+  * {
+    @apply border-steel-100;
+  }
+
+  body {
+    @apply min-h-screen bg-shell text-steel-900 antialiased;
+  }
+
+  #root {
+    @apply min-h-screen;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply rounded-[28px] border border-white/70 bg-white/80 shadow-panel backdrop-blur;
+  }
+
+  .data-label {
+    @apply font-mono text-[11px] uppercase tracking-[0.28em] text-steel-400;
+  }
+
+  .surface-grid {
+    background-image: theme("backgroundImage.grid");
+    background-size: 26px 26px;
+  }
+}
