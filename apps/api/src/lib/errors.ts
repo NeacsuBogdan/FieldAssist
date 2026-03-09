@@ -1,4 +1,5 @@
 type AppErrorCode =
+  | "BAD_REQUEST"
   | "CONFLICT"
   | "FORBIDDEN"
   | "INTERNAL_SERVER_ERROR"
@@ -36,6 +37,12 @@ export class ConflictError extends AppError {
     message = "The requested action conflicts with the current resource state.",
   ) {
     super("CONFLICT", message, 409);
+  }
+}
+
+export class BadRequestError extends AppError {
+  public constructor(message = "The request payload is invalid.") {
+    super("BAD_REQUEST", message, 400);
   }
 }
 

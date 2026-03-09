@@ -1,5 +1,6 @@
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
+import multipart from "@fastify/multipart";
 import sensible from "@fastify/sensible";
 import type { UserRole } from "@fieldassist/shared";
 import Fastify, { type FastifyBaseLogger } from "fastify";
@@ -26,6 +27,16 @@ import {
   type DashboardService,
 } from "./modules/dashboard/dashboard.service.js";
 import healthRoutes from "./modules/health/health.routes.js";
+import incidentRoutes from "./modules/incidents/incident.routes.js";
+import {
+  createIncidentService,
+  type IncidentService,
+} from "./modules/incidents/incident.service.js";
+import uploadRoutes from "./modules/uploads/upload.routes.js";
+import {
+  createUploadService,
+  type UploadService,
+} from "./modules/uploads/upload.service.js";
 import workOrderRoutes from "./modules/work-orders/work-order.routes.js";
 import {
   createWorkOrderService,
@@ -35,6 +46,8 @@ import {
 export type AppServices = {
   auth: AuthService;
   dashboard: DashboardService;
+  incidents: IncidentService;
+  uploads: UploadService;
   workOrders: WorkOrderService;
 };
 
@@ -84,6 +97,12 @@ export const buildApp = async (options: BuildAppOptions = {}) => {
     credentials: false,
     origin: config.CORS_ORIGIN,
   });
+  await app.register(multipart, {
+    limits: {
+      fileSize: 8 * 1024 * 1024,
+      files: 1,
+    },
+  });
   await app.register(sensible);
   await app.register(jwt, {
     secret: config.JWT_SECRET,
@@ -105,12 +124,27 @@ export const buildApp = async (options: BuildAppOptions = {}) => {
     });
   const dashboard =
     options.services?.dashboard ?? createDashboardService(prisma);
+  const incidents =
+    options.services?.incidents ??
+    createIncidentService({
+      activityLogService,
+      prisma,
+    });
+  const uploads =
+    options.services?.uploads ??
+    createUploadService({
+      activityLogService,
+      prisma,
+      uploadsDir: config.UPLOADS_DIR,
+    });
 
   app.decorate("config", config);
   app.decorate("prisma", prisma);
   app.decorate("services", {
     auth: authService,
     dashboard,
+    incidents,
+    uploads,
     workOrders,
   });
   app.decorateRequest("authContext", null);
@@ -201,6 +235,12 @@ export const buildApp = async (options: BuildAppOptions = {}) => {
   });
   await app.register(workOrderRoutes, {
     prefix: "/api/v1/work-orders",
+  });
+  await app.register(incidentRoutes, {
+    prefix: "/api/v1/incidents",
+  });
+  await app.register(uploadRoutes, {
+    prefix: "/api/v1/uploads",
   });
   await app.register(dashboardRoutes, {
     prefix: "/api/v1/dashboard",

@@ -13,6 +13,7 @@ import { LoadingPanel } from "@/components/states/loading-panel";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { TextArea } from "@/components/ui/text-area";
+import { IncidentReportCard } from "@/features/incidents/incident-report-card";
 import { useAuthStore } from "@/features/auth/auth-store";
 import {
   workOrderQueryKeys,
@@ -661,6 +662,64 @@ export const WorkOrderDetailPage = () => {
               );
             })}
           </div>
+        </section>
+      </section>
+
+      <section
+        className={`grid gap-5 ${
+          isTechnician ? "xl:grid-cols-[0.9fr_1.1fr]" : ""
+        }`}
+      >
+        {isTechnician ? (
+          <IncidentReportCard
+            currentStepId={currentStep?.id ?? null}
+            steps={workOrder.steps}
+            workOrderId={workOrder.id}
+          />
+        ) : null}
+
+        <section className="panel grid gap-4 p-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <span className="data-label">Incident log</span>
+              <h3 className="mt-2 text-2xl font-semibold text-steel-900">
+                Incidents on this work order
+              </h3>
+            </div>
+            <p className="max-w-xl text-sm leading-6 text-steel-600">
+              Track the exceptions already linked to this work so the technician
+              and supervisor stay aligned on open risk.
+            </p>
+          </div>
+
+          {workOrder.incidents.length > 0 ? (
+            <div className="grid gap-4">
+              {workOrder.incidents.map((incident) => (
+                <article
+                  className="rounded-3xl border border-steel-100 bg-steel-50/70 p-5"
+                  key={incident.id}
+                >
+                  <div className="flex flex-wrap items-center gap-3">
+                    <StatusBadge value={incident.severity} />
+                    <StatusBadge value={incident.status} />
+                    <span className="data-label">
+                      {new Date(incident.createdAt).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="mt-3 text-lg font-semibold text-steel-900">
+                    {incident.summary}
+                  </div>
+                  <div className="mt-2 text-sm text-steel-600">
+                    {incident.category}
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-3xl border border-dashed border-steel-200 bg-steel-50/60 px-5 py-6 text-sm text-steel-600">
+              No incidents have been linked to this work order yet.
+            </div>
+          )}
         </section>
       </section>
     </div>

@@ -21,6 +21,7 @@ const baseConfig: AppConfig = {
   LOG_LEVEL: "error",
   NODE_ENV: "test",
   PORT: 4100,
+  UPLOADS_DIR: "uploads-test",
 };
 
 const technicianUser: AuthUser = {

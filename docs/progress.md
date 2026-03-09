@@ -7,7 +7,7 @@
 - [x] Stage 2 - Core domain: assets, templates, work orders
 - [x] Stage 3 - Frontend foundation and auth flow
 - [x] Stage 4 - Technician experience
-- [ ] Stage 5 - Incident reporting
+- [x] Stage 5 - Incident reporting
 - [ ] Stage 6 - Realtime updates
 - [ ] Stage 7 - Polish, accessibility, device-friendly pass
 - [ ] Stage 8 - Test hardening, CI, docs, final cleanup
@@ -61,3 +61,12 @@
 - Rebuilt the work order detail screen around a clear execution panel with large primary actions, progress tracking, voice-ready labels, and current-step note capture.
 - Added frontend tests for the technician queue and interactive work order detail flow.
 - Verified `pnpm --filter @fieldassist/api lint`, `pnpm --filter @fieldassist/api typecheck`, `pnpm --filter @fieldassist/api test`, `pnpm --filter @fieldassist/web lint`, `pnpm --filter @fieldassist/web typecheck`, `pnpm --filter @fieldassist/web test`, and `pnpm --filter @fieldassist/web build`.
+
+### Stage 5
+
+- Added shared incident and attachment contracts plus a dedicated API incident module with list, detail, create, and update routes.
+- Added a local upload route and service that store files under the configured uploads directory while persisting attachment metadata in Postgres.
+- Expanded the technician work order experience with an incident reporting form, optional attachment upload, and linked incident log.
+- Replaced the supervisor incidents placeholder with a triage workspace that loads incident detail, shows attachments, and supports lifecycle updates.
+- Added API route coverage for incident creation, updates, and authorization plus frontend tests for the incident report form and supervisor incident workspace.
+- Verified `pnpm --filter @fieldassist/api lint`, `pnpm --filter @fieldassist/api typecheck`, `pnpm --filter @fieldassist/api test`, `pnpm --filter @fieldassist/api build`, `pnpm --filter @fieldassist/web lint`, `pnpm --filter @fieldassist/web typecheck`, `pnpm --filter @fieldassist/web test`, and `pnpm --filter @fieldassist/web build`.

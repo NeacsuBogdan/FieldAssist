@@ -22,6 +22,15 @@ export class ApiError extends Error {
   }
 }
 
+const isFormDataBody = (value: unknown): value is FormData =>
+  typeof FormData !== "undefined" && value instanceof FormData;
+
+const isDirectBody = (value: unknown): value is BodyInit =>
+  isFormDataBody(value) ||
+  value instanceof Blob ||
+  value instanceof URLSearchParams ||
+  typeof value === "string";
+
 const parseJson = async (response: Response): Promise<unknown> => {
   const contentType = response.headers.get("content-type");
 
@@ -73,8 +82,9 @@ export const apiClient = {
   ): Promise<unknown> => {
     const headers = new Headers(options?.headers);
     const token = useAuthStore.getState().token;
+    const { body, ...restOptions } = options ?? {};
 
-    if (options?.body !== undefined) {
+    if (body !== undefined && !isDirectBody(body)) {
       headers.set("Content-Type", "application/json");
     }
 
@@ -82,15 +92,15 @@ export const apiClient = {
       headers.set("Authorization", `Bearer ${token}`);
     }
 
-    const { body, ...restOptions } = options ?? {};
-
     const requestInit: RequestInit = {
       ...restOptions,
       headers,
     };
 
     if (body !== undefined) {
-      requestInit.body = JSON.stringify(body);
+      requestInit.body = isDirectBody(body)
+        ? body
+        : JSON.stringify(body);
     }
 
     const response = await fetch(`${env.apiBaseUrl}${path}`, requestInit);
