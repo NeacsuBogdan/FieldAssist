@@ -10,6 +10,7 @@
     "predb:seed": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
     "dev": "tsx watch src/server.ts",
+    "prelint": "pnpm --filter @fieldassist/shared build && prisma generate",
     "lint": "eslint \"{src,prisma,test}/**/*.ts\"",
     "prebuild": "pnpm --filter @fieldassist/shared build && prisma generate",
     "predev": "pnpm --filter @fieldassist/shared build && prisma generate",
