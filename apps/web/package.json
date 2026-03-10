@@ -8,6 +8,7 @@
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "prebuild": "pnpm --filter @fieldassist/shared build",
     "predev": "pnpm --filter @fieldassist/shared build",
+    "prelint": "pnpm --filter @fieldassist/shared build",
     "pretest": "pnpm --filter @fieldassist/shared build",
     "pretypecheck": "pnpm --filter @fieldassist/shared build",
     "test": "vitest run",
